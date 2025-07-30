@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8" />
+<style>
+:root {
+  color-scheme: light dark;
+}
+</style>
+<body>
+<pre id="t"></pre>
+
+<script>
+const el = document.getElementById("t");
+const fmt = (d) => d.toISOString().slice(0, 19).replace("T", " ") + " UTC";
+function tick() {
+  el.textContent = fmt(new Date());
+}
+tick();
+setInterval(tick, 1000);
+</script>
+
+<noscript><pre>JavaScript required</pre></noscript>
+</body>
+</html>
