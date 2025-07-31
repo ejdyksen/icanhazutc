@@ -1,0 +1,21 @@
+{
+  "name": "icanhazutc",
+  "version": "1.0.0",
+  "description": "A dead simple Cloudflare Worker that displays the current UTC time",
+  "main": "src/worker.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "keywords": [
+    "cloudflare",
+    "worker",
+    "utc",
+    "time"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
