@@ -3,14 +3,14 @@ import htmlContent from './index.html';
 export default {
   async fetch(request, env, ctx) {
     const acceptHeader = request.headers.get('Accept') || '';
-    const userAgent = request.headers.get('User-Agent') || '';
 
-    // Check if client prefers plain text
-    const wantsPlainText = acceptHeader.includes('text/plain') && !acceptHeader.includes('text/html');
+    // If client explicitly accepts HTML, give them the dynamic version
+    // Otherwise default to plain text (for curl, etc.)
+    const wantsHtml = acceptHeader.includes('text/html');
 
-    if (wantsPlainText) {
+    if (!wantsHtml) {
       const currentTime = new Date().toISOString().slice(0, 19).replace("T", " ") + " UTC";
-      return new Response(currentTime, {
+      return new Response(currentTime + '\n', {
         headers: {
           'Content-Type': 'text/plain; charset=utf-8',
           'Cache-Control': 'public, max-age=0',
