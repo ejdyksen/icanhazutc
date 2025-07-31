@@ -5,6 +5,13 @@
 :root {
   color-scheme: light dark;
 }
+#t {
+  cursor: pointer;
+  user-select: none;
+}
+#t:hover {
+  opacity: 0.8;
+}
 </style>
 <body>
 <pre id="t"></pre>
@@ -12,11 +19,32 @@
 <script>
 const el = document.getElementById("t");
 const fmt = (d) => d.toISOString().slice(0, 19).replace("T", " ") + " UTC";
+let isPaused = false;
+let intervalId;
+
 function tick() {
-  el.textContent = fmt(new Date());
+  if (!isPaused) {
+    el.textContent = fmt(new Date());
+  }
 }
-tick();
-setInterval(tick, 1000);
+
+function startTimer() {
+  tick();
+  intervalId = setInterval(tick, 1000);
+}
+
+function togglePause() {
+  isPaused = !isPaused;
+  if (isPaused) {
+    el.style.opacity = '0.6';
+  } else {
+    el.style.opacity = '1';
+    tick(); // Update immediately when unpausing
+  }
+}
+
+el.addEventListener('click', togglePause);
+startTimer();
 </script>
 
 <noscript><pre>JavaScript required</pre></noscript>
