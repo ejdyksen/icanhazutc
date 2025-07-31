@@ -2,24 +2,30 @@ import htmlContent from './index.html';
 
 export default {
   async fetch(request, env, ctx) {
-    const acceptHeader = request.headers.get('Accept') || '';
+    const url = new URL(request.url);
 
-    // If client explicitly accepts HTML, give them the dynamic version
-    // Otherwise default to plain text (for curl, etc.)
-    const wantsHtml = acceptHeader.includes('text/html');
-
-    if (!wantsHtml) {
-      const currentTime = new Date().toISOString().slice(0, 19).replace("T", " ") + " UTC";
-      return new Response(currentTime + '\n', {
+    if (url.pathname === '/robots.txt') {
+      return new Response('User-agent: *\nDisallow: /', {
         headers: {
           'Content-Type': 'text/plain; charset=utf-8',
-          'Cache-Control': 'public, max-age=0',
         },
       });
     }
 
-    // For HTML requests, inject current time into noscript
+    const acceptHeader = request.headers.get('Accept') || '';
+    const clientWantsHtmls = acceptHeader.includes('text/html');
+
     const currentTime = new Date().toISOString().slice(0, 19).replace("T", " ") + " UTC";
+
+    if (!clientWantsHtmls) {
+      return new Response(currentTime + '\n', {
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+        },
+      });
+    }
+
+    // Make sure noscript has the real time
     const htmlWithTime = htmlContent.replace(
       '<noscript><pre>JavaScript required</pre></noscript>',
       `<noscript><pre>${currentTime}</pre></noscript>`
@@ -28,7 +34,6 @@ export default {
     return new Response(htmlWithTime, {
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'public, max-age=0',
       },
     });
   },
