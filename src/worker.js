@@ -12,6 +12,10 @@ export default {
       });
     }
 
+    if (url.pathname !== '/') {
+      return new Response(null, { status: 404 });
+    }
+
     const acceptHeader = request.headers.get('Accept') || '';
     const clientWantsHtml = acceptHeader.includes('text/html');
 
