@@ -28,7 +28,7 @@ let basePerf;
 // Determine skew using server time if provided.
 const hasServerTime = Number.isFinite(SERVER_TIME_MS) && SERVER_TIME_MS > 0;
 const clockSkewMs = hasServerTime ? (SERVER_TIME_MS - Date.now()) : 0;
-const showTimeWarning = hasServerTime && Math.abs(clockSkewMs) > 30_000; // 30s
+const showTimeWarning = hasServerTime && Math.abs(clockSkewMs) > 10_000; // 10s
 
 function rebase(epochMs) {
   baseEpochMs = epochMs;
@@ -44,7 +44,7 @@ function render(epochMs) {
   // When skew is large, show static server time with warning
   if (showTimeWarning) {
     const serverTime = fmt(new Date(SERVER_TIME_MS));
-    const msg = `${serverTime}\n\nwarning, local clock may be inaccurate, using server time`;
+    const msg = `${serverTime}\n\nwarning, local clock may be inaccurate, showing server time`;
     if (el.textContent !== msg) el.textContent = msg;
     return;
   }
