@@ -36,6 +36,7 @@ export default {
     return new Response(htmlWithTime, {
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'public, max-age=86400, s-maxage=86400',
       },
     });
   },
