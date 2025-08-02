@@ -13,11 +13,13 @@ export default {
     }
 
     const acceptHeader = request.headers.get('Accept') || '';
-    const clientWantsHtmls = acceptHeader.includes('text/html');
+    const clientWantsHtml = acceptHeader.includes('text/html');
 
-    const currentTime = new Date().toISOString().slice(0, 19).replace("T", " ") + " UTC";
+    // Single Date.now() call for consistency
+    const serverTimeMs = Date.now();
+    const currentTime = new Date(serverTimeMs).toISOString().slice(0, 19).replace("T", " ") + " UTC";
 
-    if (!clientWantsHtmls) {
+    if (!clientWantsHtml) {
       return new Response(currentTime + '\n', {
         headers: {
           'Content-Type': 'text/plain; charset=utf-8',
@@ -25,11 +27,11 @@ export default {
       });
     }
 
-    // Make sure noscript has the real time
-    const htmlWithTime = htmlContent.replace(
-      '<noscript><pre>JavaScript required</pre></noscript>',
-      `<noscript><pre>${currentTime}</pre></noscript>`
-    );
+    // Single pass replacement with both modifications
+    const htmlWithTime = htmlContent
+      .replace('<noscript><pre>JavaScript required</pre></noscript>',
+               `<noscript><pre>${currentTime}</pre></noscript>`)
+      .replace('const SERVER_TIME_MS = 0;', `const SERVER_TIME_MS = ${serverTimeMs};`);
 
     return new Response(htmlWithTime, {
       headers: {

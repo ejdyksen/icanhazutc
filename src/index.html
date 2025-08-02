@@ -1,52 +1,136 @@
 <!DOCTYPE html>
 <html>
-<meta charset="utf-8" />
+<meta charset="utf-8">
 <style>
 :root {
   color-scheme: light dark;
-}
-#t {
-  cursor: pointer;
-  user-select: none;
-}
-#t:hover {
-  opacity: 0.8;
 }
 </style>
 <body>
 <pre id="t"></pre>
 
-<script>
-const el = document.getElementById("t");
-const fmt = (d) => d.toISOString().slice(0, 19).replace("T", " ") + " UTC";
-let isPaused = false;
-let intervalId;
+<noscript><pre>JavaScript required</pre></noscript>
 
-function tick() {
-  if (!isPaused) {
-    el.textContent = fmt(new Date());
+<script>
+// Replaced by server at render time (ms since epoch). 0 means "unknown".
+const SERVER_TIME_MS = 0;
+
+const el = document.getElementById("t");
+const fmt = d => d.toISOString().slice(0,19).replace("T"," ") + " UTC";
+
+let isPaused = false;
+let timeoutId = null;
+
+// Establish base time (epoch) and its monotonic anchor (performance.now()).
+let baseEpochMs;
+let basePerf;
+
+// Determine skew using server time if provided.
+const hasServerTime = Number.isFinite(SERVER_TIME_MS) && SERVER_TIME_MS > 0;
+const clockSkewMs = hasServerTime ? (SERVER_TIME_MS - Date.now()) : 0;
+const showTimeWarning = hasServerTime && Math.abs(clockSkewMs) > 30_000; // 30s
+
+function rebase(epochMs) {
+  baseEpochMs = epochMs;
+  basePerf = performance.now();
+}
+
+// Monotonic "now" in epoch ms, immune to user clock jumps.
+function nowEpochMs() {
+  return baseEpochMs + (performance.now() - basePerf);
+}
+
+function render(epochMs) {
+  // When skew is large, prefer server-aligned time for the main line
+  // and show an explicit warning + the server time at load for reference.
+  if (showTimeWarning) {
+    const live = fmt(new Date(epochMs));                  // live, server-aligned
+    const serverAtLoad = fmt(new Date(SERVER_TIME_MS));   // reference point
+    const msg = `${live}\n\n\nwarning, local clock may be inaccurate\n\nserver clock (at page load):\n\n${serverAtLoad}`;
+    if (el.textContent !== msg) el.textContent = msg;
+    return;
   }
+
+  const s = fmt(new Date(epochMs));
+  if (el.textContent !== s) el.textContent = s;
+}
+
+function scheduleNextTick() {
+  if (isPaused) return;
+  const epoch = nowEpochMs();
+  const delay = 1000 - (epoch % 1000); // align to next exact second boundary
+  clearTimeout(timeoutId);
+  timeoutId = setTimeout(() => {
+    // Slight guard: if timing slipped badly, recompute boundary on next loop
+    render(nowEpochMs());
+    scheduleNextTick();
+  }, delay);
 }
 
 function startTimer() {
-  tick();
-  intervalId = setInterval(tick, 1000);
+  // Seed from server time when available; otherwise fall back to local time.
+  rebase(hasServerTime ? SERVER_TIME_MS : Date.now());
+  render(nowEpochMs());
+  scheduleNextTick();
+}
+
+function stopTimer() {
+  clearTimeout(timeoutId);
+  timeoutId = null;
 }
 
 function togglePause() {
   isPaused = !isPaused;
+  el.style.opacity = isPaused ? "0.8" : "1";
   if (isPaused) {
-    el.style.opacity = '0.6';
+    stopTimer();
   } else {
-    el.style.opacity = '1';
-    tick(); // Update immediately when unpausing
+    // Recompute boundary on resume from pause.
+    render(nowEpochMs());
+    scheduleNextTick();
   }
 }
 
-el.addEventListener('click', togglePause);
+// Pause on mouse down so text can be selected
+el.addEventListener('mousedown', () => {
+  if (!isPaused) {
+    isPaused = true;
+    el.style.opacity = "0.8";
+    stopTimer();
+  }
+});
+
+el.addEventListener('mouseup', () => {
+  if (isPaused) {
+    isPaused = false;
+    el.style.opacity = "1";
+    render(nowEpochMs());
+    scheduleNextTick();
+  }
+});
+
+// Handle case where mouse leaves element while down
+el.addEventListener('mouseleave', () => {
+  if (isPaused) {
+    isPaused = false;
+    el.style.opacity = "1";
+    render(nowEpochMs());
+    scheduleNextTick();
+  }
+});
+
+// Avoid background work; recompute boundary when becoming visible.
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    stopTimer();
+  } else if (!isPaused) {
+    // Keep the same monotonic base; just re-align to the next boundary.
+    render(nowEpochMs());
+    scheduleNextTick();
+  }
+});
+
 startTimer();
 </script>
-
-<noscript><pre>JavaScript required</pre></noscript>
 </body>
 </html>
