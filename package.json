@@ -4,8 +4,10 @@
   "description": "A dead simple Cloudflare Worker that displays the current UTC time",
   "main": "src/worker.js",
   "scripts": {
+    "build": "mkdir -p dist && html-minifier-terser --collapse-whitespace --remove-comments --minify-css --minify-js --output dist/index.html src/index.html && cp src/worker.js dist/",
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy --cwd dist",
+    "clean": "rm -rf dist"
   },
   "keywords": [
     "cloudflare",
@@ -16,6 +18,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "html-minifier-terser": "^7.2.0",
     "wrangler": "^4.26.1"
   }
 }
