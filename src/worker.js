@@ -31,7 +31,7 @@ export default {
     const htmlWithTime = htmlContent
       .replace('<noscript><pre>JavaScript required</pre></noscript>',
                `<noscript><pre>${currentTime}</pre></noscript>`)
-      .replace('const SERVER_TIME_MS = 0;', `const SERVER_TIME_MS = ${serverTimeMs};`);
+      .replace('const SERVER_TIME_MS=0', `const SERVER_TIME_MS=${serverTimeMs}`);
 
     return new Response(htmlWithTime, {
       headers: {

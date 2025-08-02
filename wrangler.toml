@@ -1,5 +1,5 @@
 name = "icanhazutc"
-main = "src/worker.js"
+main = "dist/worker.js"
 compatibility_date = "2024-01-01"
 
 [build]
@@ -10,7 +10,7 @@ format = "modules"
 
 [[rules]]
 type = "Text"
-globs = ["**/*.html"]
+globs = ["*.html"]
 
 [env.production]
 name = "icanhazutc"
