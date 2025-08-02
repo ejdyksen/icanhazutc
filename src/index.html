@@ -2,16 +2,16 @@
 <html>
 <meta charset="utf-8">
 <style>
+/* Yes, we want 99% body height so that the mouse selection behavior works as intended */
 :root {
   color-scheme: light dark;
 }
 </style>
 <body>
 <pre id="t"></pre>
-
 <noscript><pre>JavaScript required</pre></noscript>
-
 <script>
+
 // Replaced by server at render time (ms since epoch). 0 means "unknown".
 const SERVER_TIME_MS = 0;
 
@@ -89,27 +89,17 @@ function togglePause() {
   }
 }
 
-// Pause on mouse down so text can be selected
-el.addEventListener('mousedown', () => {
-  if (!isPaused) {
+// Handle selection changes (keyboard selection, programmatic, etc.)
+document.addEventListener('selectionchange', () => {
+  const hasSelection = window.getSelection().toString().length > 0;
+
+  if (hasSelection && !isPaused) {
+    // Text selected, pause timer
     isPaused = true;
     el.style.opacity = "0.8";
     stopTimer();
-  }
-});
-
-el.addEventListener('mouseup', () => {
-  if (isPaused) {
-    isPaused = false;
-    el.style.opacity = "1";
-    render(nowEpochMs());
-    scheduleNextTick();
-  }
-});
-
-// Handle case where mouse leaves element while down
-el.addEventListener('mouseleave', () => {
-  if (isPaused) {
+  } else if (!hasSelection && isPaused) {
+    // No text selected, resume timer
     isPaused = false;
     el.style.opacity = "1";
     render(nowEpochMs());
