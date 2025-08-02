@@ -41,12 +41,10 @@ function nowEpochMs() {
 }
 
 function render(epochMs) {
-  // When skew is large, prefer server-aligned time for the main line
-  // and show an explicit warning + the server time at load for reference.
+  // When skew is large, show static server time with warning
   if (showTimeWarning) {
-    const live = fmt(new Date(epochMs));                  // live, server-aligned
-    const serverAtLoad = fmt(new Date(SERVER_TIME_MS));   // reference point
-    const msg = `${live}\n\n\nwarning, local clock may be inaccurate\n\nserver clock (at page load):\n\n${serverAtLoad}`;
+    const serverTime = fmt(new Date(SERVER_TIME_MS));
+    const msg = `${serverTime}\n\nwarning, local clock may be inaccurate, using server time`;
     if (el.textContent !== msg) el.textContent = msg;
     return;
   }
@@ -56,7 +54,7 @@ function render(epochMs) {
 }
 
 function scheduleNextTick() {
-  if (isPaused) return;
+  if (isPaused || showTimeWarning) return;
   const epoch = nowEpochMs();
   const delay = 1000 - (epoch % 1000); // align to next exact second boundary
   clearTimeout(timeoutId);
