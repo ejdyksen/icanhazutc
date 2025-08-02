@@ -11,6 +11,3 @@ globs = ["**/*.html"]
 
 [env.production]
 name = "icanhazutc"
-
-[env.staging]
-name = "icanhazutc-staging"
