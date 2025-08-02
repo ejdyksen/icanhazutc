@@ -28,7 +28,7 @@ let basePerf;
 // Determine skew using server time if provided.
 const hasServerTime = Number.isFinite(SERVER_TIME_MS) && SERVER_TIME_MS > 0;
 const clockSkewMs = hasServerTime ? (SERVER_TIME_MS - Date.now()) : 0;
-const showTimeWarning = hasServerTime && Math.abs(clockSkewMs) > 10_000; // 10s
+const showTimeWarning = hasServerTime && Math.abs(clockSkewMs) > 60_000; // 60 sec
 
 function rebase(epochMs) {
   baseEpochMs = epochMs;
