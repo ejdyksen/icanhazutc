@@ -55,14 +55,31 @@ function render(epochMs) {
 
 function scheduleNextTick() {
   if (isPaused || showTimeWarning) return;
-  const epoch = nowEpochMs();
-  const delay = 1000 - (epoch % 1000); // align to next exact second boundary
   clearTimeout(timeoutId);
-  timeoutId = setTimeout(() => {
-    // Slight guard: if timing slipped badly, recompute boundary on next loop
-    render(nowEpochMs());
-    scheduleNextTick();
-  }, delay);
+  
+  function tick() {
+    if (isPaused || showTimeWarning) return;
+    
+    const now = nowEpochMs();
+    const msIntoSecond = now % 1000;
+    
+    // Render when within one frame of second boundary
+    if (msIntoSecond < 16) {
+      const exactSecondTime = now - msIntoSecond;
+      render(exactSecondTime);
+    }
+    
+    if (msIntoSecond < 200 || msIntoSecond > 800) {
+      // Near second boundary - use RAF for precision
+      requestAnimationFrame(tick);
+    } else {
+      // Far from boundary - sleep until we're close (800ms mark)
+      const msUntilNearBoundary = 800 - msIntoSecond;
+      timeoutId = setTimeout(tick, msUntilNearBoundary);
+    }
+  }
+  
+  tick();
 }
 
 function startTimer() {
