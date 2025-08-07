@@ -33,8 +33,9 @@ export default {
       });
     }
 
-    // Single pass replacement with both modifications
+    // Triple replacement: main pre tag, noscript fallback, and JS variable
     const htmlWithTime = htmlContent
+      .replace('<pre id="t"></pre>', `<pre id="t">${currentTime}</pre>`)
       .replace(
         "<noscript><pre>JavaScript required</pre></noscript>",
         `<noscript><pre>${currentTime}</pre></noscript>`
