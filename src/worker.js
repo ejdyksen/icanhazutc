@@ -12,7 +12,8 @@ export default {
       });
     }
 
-    if (url.pathname !== "/") {
+    const validPaths = ["/", "/iso", "/rfc", "/unix"];
+    if (!validPaths.includes(url.pathname)) {
       return new Response(null, { status: 404 });
     }
 
@@ -21,7 +22,18 @@ export default {
 
     // Single Date.now() call for consistency
     const serverTimeMs = Date.now();
-    const currentTime = new Date(serverTimeMs).toISOString().slice(0, 19) + "Z";
+    const serverDate = new Date(serverTimeMs);
+    
+    // Format based on path
+    let currentTime;
+    if (url.pathname === "/iso" || url.pathname === "/rfc") {
+      currentTime = serverDate.toISOString().slice(0, 19) + "Z";
+    } else if (url.pathname === "/unix") {
+      currentTime = Math.floor(serverTimeMs / 1000).toString();
+    } else {
+      // Default human-readable format
+      currentTime = serverDate.toISOString().slice(0, 19).replace("T", " ");
+    }
 
     if (!clientWantsHtml) {
       return new Response(currentTime + "\n", {

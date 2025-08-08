@@ -16,7 +16,19 @@
 let SERVER_TIME_MS = 0;
 
 const el = document.getElementById("t");
-const fmt = d => d.toISOString().slice(0,19) + "Z";
+
+// Determine format based on current path
+const path = window.location.pathname;
+const fmt = d => {
+  if (path === "/iso" || path === "/rfc") {
+    return d.toISOString().slice(0,19) + "Z";
+  } else if (path === "/unix") {
+    return Math.floor(d.getTime() / 1000).toString();
+  } else {
+    // Default human-readable format
+    return d.toISOString().slice(0,19).replace("T"," ");
+  }
+};
 
 let isPaused = false;
 let timeoutId = null;
