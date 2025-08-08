@@ -16,7 +16,7 @@
 let SERVER_TIME_MS = 0;
 
 const el = document.getElementById("t");
-const fmt = d => d.toISOString().slice(0,19).replace("T"," ") + " UTC";
+const fmt = d => d.toISOString().slice(0,19) + "Z";
 
 let isPaused = false;
 let timeoutId = null;
@@ -43,13 +43,13 @@ function nowEpochMs() {
   const monotonicTime = baseEpochMs + (perfNow - basePerf);
   const systemTime = Date.now();
   const drift = Math.abs(monotonicTime - systemTime);
-  
+
   // If drift > 2 seconds, assume sleep/wake or time jump - resync immediately
   if (drift > 2_000) {
     rebase(systemTime);
     return systemTime;
   }
-  
+
   return monotonicTime;
 }
 
@@ -71,27 +71,27 @@ function scheduleNextTick() {
   if (isPaused || showTimeWarning) return;
   clearTimeout(timeoutId);
   cancelAnimationFrame(rafId);
-  
+
   function tick() {
     rafId = null; // Clear RAF id to prevent double scheduling
     if (isPaused || showTimeWarning) return;
-    
+
     const now = nowEpochMs();
     const msIntoSecond = now % 1000;
-    
+
     // Render when within one frame of second boundary
     if (msIntoSecond < 16) {
       const exactSecondTime = now - msIntoSecond;
       render(exactSecondTime, nextSecondString);
       nextSecondString = null; // Clear after use
     }
-    
+
     // Pre-compute next second's string when we're approaching it
     if (msIntoSecond > 950 && !nextSecondString) {
       const nextSecondTime = now - msIntoSecond + 1000;
       nextSecondString = fmt(new Date(nextSecondTime));
     }
-    
+
     if (msIntoSecond < 200 || msIntoSecond > 800) {
       // Near second boundary - use RAF for precision
       rafId = requestAnimationFrame(tick);
@@ -101,7 +101,7 @@ function scheduleNextTick() {
       timeoutId = setTimeout(tick, msUntilNearBoundary);
     }
   }
-  
+
   tick();
 }
 

@@ -21,9 +21,7 @@ export default {
 
     // Single Date.now() call for consistency
     const serverTimeMs = Date.now();
-    const currentTime =
-      new Date(serverTimeMs).toISOString().slice(0, 19).replace("T", " ") +
-      " UTC";
+    const currentTime = new Date(serverTimeMs).toISOString().slice(0, 19) + "Z";
 
     if (!clientWantsHtml) {
       return new Response(currentTime + "\n", {
