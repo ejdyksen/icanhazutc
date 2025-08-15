@@ -5,11 +5,23 @@
 <style>
 :root {
   color-scheme: light dark;
+  font-family: monospace;
+}
+nav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  margin: 16px;
+  display: none;
+}
+nav a {
+    text-decoration: none;
+    color: inherit;
 }
 </style>
 <body>
 <pre id="t"></pre>
-<noscript><pre>JavaScript required</pre></noscript>
+<nav><a id="about" href="https://github.com/ejdyksen/icanhazip">about</a></nav>
 <script>
 
 // Replaced by server at render time (ms since epoch). 0 means "unknown".
@@ -175,6 +187,18 @@ document.addEventListener('visibilitychange', () => {
 });
 
 startTimer();
+
+const navEl = document.querySelector('nav');
+
+document.addEventListener('click', (event) => {
+  if (event.target.id === 't' || event.target.tagName === 'A') {
+    return;
+  }
+
+  navEl.style.display = navEl.style.display === 'none' ? 'block' : 'none';
+});
+
 </script>
+<noscript><pre>JavaScript required</pre></noscript>
 </body>
 </html>
