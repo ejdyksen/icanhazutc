@@ -46,6 +46,7 @@ let isPaused = false;
 let timeoutId = null;
 let rafId = null;
 let nextSecondString = null; // Pre-computed string for next second
+const RAF_GUARD_MS = 120;
 
 // Establish base time (epoch) and its monotonic anchor (performance.now()).
 let baseEpochMs;
@@ -103,25 +104,27 @@ function scheduleNextTick() {
     const now = nowEpochMs();
     const msIntoSecond = now % 1000;
 
-    // Render when within one frame of second boundary
-    if (msIntoSecond < 16) {
+    // Render just after the second boundary, then sleep until the next guard window.
+    if (msIntoSecond <= RAF_GUARD_MS) {
       const exactSecondTime = now - msIntoSecond;
       render(exactSecondTime, nextSecondString);
       nextSecondString = null; // Clear after use
+      timeoutId = setTimeout(tick, 1000 - msIntoSecond - RAF_GUARD_MS);
+      return;
     }
 
     // Pre-compute next second's string when we're approaching it
-    if (msIntoSecond > 950 && !nextSecondString) {
+    if (msIntoSecond >= 1000 - RAF_GUARD_MS && !nextSecondString) {
       const nextSecondTime = now - msIntoSecond + 1000;
       nextSecondString = fmt(new Date(nextSecondTime));
     }
 
-    if (msIntoSecond < 200 || msIntoSecond > 800) {
-      // Near second boundary - use RAF for precision
+    if (msIntoSecond >= 1000 - RAF_GUARD_MS) {
+      // Near second boundary - use RAF for paint-aligned precision.
       rafId = requestAnimationFrame(tick);
     } else {
-      // Far from boundary - sleep until we're close (800ms mark)
-      const msUntilNearBoundary = 800 - msIntoSecond;
+      // Far from boundary - sleep until the guard window.
+      const msUntilNearBoundary = 1000 - RAF_GUARD_MS - msIntoSecond;
       timeoutId = setTimeout(tick, msUntilNearBoundary);
     }
   }
