@@ -60,6 +60,7 @@ const showTimeWarning = hasServerTime && Math.abs(clockSkewMs) > 60_000; // 60 s
 function rebase(epochMs) {
   baseEpochMs = epochMs;
   basePerf = performance.now();
+  nextSecondString = null;
 }
 
 // Monotonic "now" with sleep/wake detection.
@@ -133,8 +134,8 @@ function scheduleNextTick() {
 }
 
 function startTimer() {
-  // Seed from server time when available; otherwise fall back to local time.
-  rebase(hasServerTime ? SERVER_TIME_MS : Date.now());
+  // Use the local clock for live display; server time only gates skew warnings.
+  rebase(Date.now());
   render(nowEpochMs());
   scheduleNextTick();
 }
@@ -142,6 +143,7 @@ function startTimer() {
 function stopTimer() {
   clearTimeout(timeoutId);
   timeoutId = null;
+  nextSecondString = null;
   if (rafId) {
     cancelAnimationFrame(rafId);
     rafId = null;
@@ -162,7 +164,8 @@ function togglePause() {
 
 // Handle selection changes (keyboard selection, programmatic, etc.)
 document.addEventListener('selectionchange', () => {
-  const hasSelection = window.getSelection().toString().length > 0;
+  const selection = window.getSelection();
+  const hasSelection = selection && !selection.isCollapsed;
 
   if (hasSelection && !isPaused) {
     // Text selected, pause timer
@@ -184,6 +187,17 @@ document.addEventListener('visibilitychange', () => {
     stopTimer();
   } else if (!isPaused) {
     // Keep the same monotonic base; just re-align to the next boundary.
+    render(nowEpochMs());
+    scheduleNextTick();
+  }
+});
+
+window.addEventListener('pagehide', () => {
+  stopTimer();
+});
+
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted && !isPaused) {
     render(nowEpochMs());
     scheduleNextTick();
   }
