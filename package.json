@@ -7,6 +7,7 @@
     "build": "mkdir -p dist && html-minifier-terser --remove-comments --minify-js --minify-css --output dist/index.html src/index.html && cp src/worker.js dist/",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --cwd dist",
+    "deploy:preview": "wrangler versions upload --cwd dist",
     "clean": "rm -rf dist"
   },
   "keywords": [
